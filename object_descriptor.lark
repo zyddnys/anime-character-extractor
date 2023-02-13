@@ -1,0 +1,24 @@
+// A bunch of words
+start: object+				
+
+?object: CNAME "=" query
+
+?query: [and_query | query "or" and_query]
+
+?and_query: [unary_query | and_query and_query | and_query "and" and_query]
+
+?unary_query: [primary_query | "not" primary_query]
+
+?primary_query: ["(" query ")" | single_tag]
+
+?single_tag: TAG ">" NUMBER
+
+TAG: /[\w\d\_]+/
+
+// imports WORD from library
+%import common.CNAME   
+%import common.NUMBER
+%import common.WS
+
+// Disregard spaces in text
+%ignore WS

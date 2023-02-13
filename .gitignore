@@ -1,0 +1,6 @@
+*.png
+*.jpg
+*.pt
+dataset/
+test2/
+__pycache__
