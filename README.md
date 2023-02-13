@@ -12,4 +12,5 @@ Extract anime characters from anime video files, so they can later be used for t
 ```
 https://github.com/hysts/anime-face-detector
 https://github.com/nagadomi/lbpcascade_animeface
+https://github.com/AUTOMATIC1111/TorchDeepDanbooru
 ```
