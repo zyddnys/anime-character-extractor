@@ -2,6 +2,9 @@
 Extract anime characters from anime video files, so they can later be used for texture inversion or other tasks
 # Usage
 `python main.py -i K:\anime\ReincarnatedPrincess -d characters\ReincarnatedPrincess.booru -o output\ReincarnatedPrincess\`
+# Known issues
+1. Very poor performance
+2. Character descriptor language does not handle "not" yet
 # TODO
 1. Use TransNetV2 to segment video, for each shot we run multiple CascadeClassifier in parallel and yield a single frame with faces as far away from the edge as possible
 2. Use character detector instead of face detector
