@@ -11,8 +11,12 @@ import argparse
 
 from video_reader import image_files_generator, video_frame_generator, resize_keep_aspect_and_pad, video_frame_generator_transnetv2
 from animeface_detector import detect as detect_face
-from deep_danbooru_model import DeepDanbooruModel
+from deep_danbooru_model import RegDeepDanbooruModel, resize_keep_aspect_max
 from object_descriptor_parser import create_objects_from_descriptor
+
+def unsharp(image):
+    gaussian_3 = cv2.GaussianBlur(image, (3, 3), 2.0)
+    return cv2.addWeighted(image, 1.5, gaussian_3, -0.5, 0, image)
 
 def character_shot_generator(img: np.ndarray) :
     coords_nn, offsets = detect_face(img, 'nn')
@@ -35,20 +39,14 @@ def character_shot_generator(img: np.ndarray) :
         x2 = int(min(img.shape[1] - 1, x2))
         yield img[y1: y2, x1: x2], (x1, y1), (x2, y2)
 
-def img2tags(model: DeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, float] :
-    img_bgr = resize_keep_aspect_and_pad(img_bgr, 512, 128)
-    img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)).float() / 255.0, 'h w c -> 1 h w c').cuda()
-    y = model(img)[0].detach().cpu().numpy()
-    ret = {}
-    for i, p in enumerate(y):
-        if p >= 0.75:
-            ret[model.tags[i]] = p
-    return ret
+def img2tags(model: RegDeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, float] :
+    img_bgr = resize_keep_aspect_max(img_bgr, 768)
+    img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)).float() / 127.5 - 1.0, 'h w c -> 1 c h w').cuda()
+    return model.predict(img)
 
 @torch.no_grad()
 def main(src: str, dst: str, desc: str, format: str = 'jpg') :
-    deepbooru_model = DeepDanbooruModel().cuda()
-    deepbooru_model.load_state_dict(torch.load('model-resnet_custom_v3.pt'))
+    deepbooru_model = RegDeepDanbooruModel()
     with open(desc, 'r') as fp :
         objects, postprocess = create_objects_from_descriptor(fp.read())
     report_freq = 10
@@ -86,23 +84,6 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
             next_milestone = cur_time + report_freq
             print(f'Total Frames={n_frames}, fps={n_frames_cur_milestone / elapsed}')
             n_frames_cur_milestone = 0
-
-def test(src: str, dst: str, desc: str) :
-    deepbooru_model = DeepDanbooruModel().cuda()
-    deepbooru_model.load_state_dict(torch.load('model-resnet_custom_v3.pt'))
-    img = cv2.imread('dataset/cap_the.magical.revolution.of.the.reincarnated.princess.and.the.genius.young.lady.s01e06.1080p.web.h264-senpai_00_04_33_01.jpg')
-    img_save = img.copy()
-    counter = 0
-    for char_shot, (x1, y1), (x2, y2) in character_shot_generator(img) :
-        cv2.imwrite(f'detect-{counter}.jpg', char_shot)
-        counter += 1
-        cv2.rectangle(img_save, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        tags = img2tags(deepbooru_model, char_shot)
-        print('-----------------------------')
-        for tag, p in tags :
-            print(tag, p)
-    cv2.imwrite(f'detect-all.jpg', img_save)
-    pass
 
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser(description = 'Extract anime characters from anime')

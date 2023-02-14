@@ -1,15 +1,15 @@
 objects {
-    anisphia_wynn_palettia = 1girl>0.9 blonde_hair>0.85 green_eyes>0.85;
-    euphyllia_magenta = 1girl>0.9 (grey_hair>0.85 or silver_hair>0.85) purple_eyes>0.85;
-    tilty_claret = 1girl>0.9 (black_hair>0.85 or purple_hair>0.85) (purple_eyes>0.85 or red_eyes>0.85);
-    ilia_coral = 1girl>0.9 red_hair>0.85 blue_eyes>0.85;
-    lainie_cyan = 1girl>0.9 black_hair>0.85 red_eyes>0.85;
+    anisphia_wynn_palettia = 1girl>0.9 blonde_hair>0.82 green_eyes>0.82;
+    euphyllia_magenta = 1girl>0.9 (grey_hair>0.82 or silver_hair>0.82) purple_eyes>0.82;
+    tilty_claret = 1girl>0.9 (black_hair>0.82 or purple_hair>0.82) (purple_eyes>0.82 or red_eyes>0.82);
+    ilia_coral = 1girl>0.9 red_hair>0.82 blue_eyes>0.82;
+    lainie_cyan = 1girl>0.9 black_hair>0.82 red_eyes>0.82;
 }
 postprocess {
     * regex "\w*\(fate\)" drop;
     * category character drop;
     * category copyright drop;
-    * prob 0.85 drop;
+    * prob 0.8 drop;
     euphyllia_magenta exact braid drop;
     euphyllia_magenta exact crown_braid drop;
     euphyllia_magenta exact grey_hair drop;

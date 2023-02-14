@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 
 class DeepDanbooruModel(nn.Module):
@@ -672,3 +673,49 @@ class DeepDanbooruModel(nn.Module):
 
         super(DeepDanbooruModel, self).load_state_dict({k: v for k, v in state_dict.items() if k != 'tags'})
 
+from RegDanbooru2019_8G import RegDanbooru2019
+import cv2
+
+def resize_keep_aspect_max(img: np.ndarray, size: int):
+    ratio = size / max(img.shape[0], img.shape[1])
+    new_width = round(img.shape[1] * ratio)
+    new_height = round(img.shape[0] * ratio)
+    img2 = cv2.resize(img, (new_width, new_height), cv2.INTER_LANCZOS4)
+    return img2
+
+class RegDeepDanbooruModel :
+    def __init__(self) -> None:
+        self.model = RegDanbooru2019().cuda()
+        self.model.load_state_dict(torch.load("regdeepdanbooru.ckpt")['model'])
+        self.model.eval()
+        self.label_map = {}
+        with open('danbooru_labels.txt', 'r') as fp :
+            for l in fp :
+                l = l.strip()
+                if l :
+                    idx, tag = l.split(' ')
+                    self.label_map[int(idx)] = tag
+
+    @torch.no_grad()
+    def predict(self, img: torch.Tensor) :
+        threshold = 0.75
+        danbooru_logits = self.model(img)
+        probs = danbooru_logits.sigmoid().cpu()
+        print(probs.shape)
+        choosen_indices = (probs > threshold).nonzero()
+        result = {}
+        for i in range(probs.size(0)) :
+            prob_single = probs[0].numpy()
+            indices_single = choosen_indices[choosen_indices[:, 0] == i][:, 1].numpy()
+            tag_prob_map = {self.label_map[idx]: prob_single[idx] for idx in indices_single}
+        return tag_prob_map
+
+if __name__ == '__main__' :
+    import numpy as np
+    import cv2
+    import einops
+    img = cv2.imread('dataset/cap_the.magical.revolution.of.the.reincarnated.princess.and.the.genius.young.lady.s01e03.1080p.web.h264-senpai_00_04_35_248.jpg')
+    img = resize_keep_aspect(img, 768)
+    model = RegDeepDanbooruModel()
+    img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).float() / 127.5 - 1.0, 'h w c -> 1 c h w').cuda()
+    print(model.predict(img))

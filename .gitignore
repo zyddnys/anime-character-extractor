@@ -1,6 +1,8 @@
 *.png
 *.jpg
 *.pt
+*.pth
+*.ckpt
 dataset/
 test2/
 test3/
