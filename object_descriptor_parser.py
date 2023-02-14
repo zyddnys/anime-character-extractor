@@ -57,6 +57,13 @@ class MultipleObjects :
                 return obj.object_name
         return None
 
+class TagPostprocess :
+    def __init__(self, t: ParseTree) -> None:
+        pass
+
+    def apply(self, object_name: str, tags: Dict[str, float]) -> Dict[str, float] :
+        return tags
+
 def verify_descriptor(tree: ParseTree) -> bool :
     passed = [True]
     def verify2(t: ParseTree) :
@@ -76,28 +83,30 @@ def verify_descriptor(tree: ParseTree) -> bool :
         verify_object(child)
     return passed[0]
 
-def create_objects_from_descriptor(d: str) -> MultipleObjects :
+def create_objects_from_descriptor(d: str) -> Tuple[MultipleObjects, TagPostprocess] :
     global PARSER
     if PARSER is None :
         with open('object_descriptor.lark', 'r') as fp :
             PARSER = Lark(fp)
     tree = PARSER.parse(d)
+    objects_tree = tree.children[0]
+    postprocess_tree = tree.children[1]
     objects: List[SingleObject] = []
-    if verify_descriptor(tree) :
-        for t in tree.children :
+    if verify_descriptor(objects_tree) :
+        for t in objects_tree.children :
             objects.append(SingleObject(t.children[0], t.children[1]))
     else :
         raise RuntimeError()
-    return MultipleObjects(objects)
+    return MultipleObjects(objects), TagPostprocess(postprocess_tree)
 
 def test() :
     global PARSER
     if PARSER is None :
         with open('object_descriptor.lark', 'r') as fp :
             PARSER = Lark(fp)
-    with open('extract_ReincarnatedPrincess.txt', 'r') as fp :
+    with open('characters\ReincarnatedPrincess.booru', 'r') as fp :
         object_file_str = fp.read()
-    objects = create_objects_from_descriptor(object_file_str)
+    objects, _ = create_objects_from_descriptor(object_file_str)
     obj1 = {
         "1girl": 0.9913652,
         "hair_bow": 0.97715604,

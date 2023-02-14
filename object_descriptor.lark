@@ -1,7 +1,21 @@
 // A bunch of words
-start: object+				
+start: object_statement postprocess_statement*
 
-?object: CNAME "=" query
+?postprocess_statement: "postprocess" "{" postprocess* "}"
+
+?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category|postprocess_match_prob|postprocess_match_exact] [postprocess_action_drop|postprocess_action_append]";"
+
+?postprocess_match_regex: "regex" DOUBLE_QUOTED_STRING
+?postprocess_match_category: "category" CNAME
+?postprocess_match_prob: "prob" NUMBER
+?postprocess_match_exact: "exact" TAG
+
+?postprocess_action_drop: "drop"
+?postprocess_action_append: "append" TAG+
+
+?object_statement: "objects" "{" object+ "}"
+
+?object: TAG "=" query ";"
 
 ?query: [and_query | query "or" and_query]
 
@@ -14,11 +28,14 @@ start: object+
 ?single_tag: TAG ">" NUMBER
 
 TAG: /[\w\d\_]+/
+POSTPROCESS_TAG: /[\*\w\d\_]+/
+DOUBLE_QUOTED_STRING  : /"[^"]*"/
 
 // imports WORD from library
 %import common.CNAME   
 %import common.NUMBER
 %import common.WS
+%import common.DOUBLE_QUOTED_STRING  
 
 // Disregard spaces in text
 %ignore WS

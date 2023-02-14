@@ -9,7 +9,7 @@ import torch.nn as nn
 import einops
 import argparse
 
-from video_reader import image_files_generator, video_frame_generator, resize_keep_aspect_and_pad
+from video_reader import image_files_generator, video_frame_generator, resize_keep_aspect_and_pad, video_frame_generator_transnetv2
 from animeface_detector import detect as detect_face
 from deep_danbooru_model import DeepDanbooruModel
 from object_descriptor_parser import create_objects_from_descriptor
@@ -36,7 +36,7 @@ def character_shot_generator(img: np.ndarray) :
         yield img[y1: y2, x1: x2], (x1, y1), (x2, y2)
 
 def img2tags(model: DeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, float] :
-    img_bgr = resize_keep_aspect_and_pad(img_bgr, 384, 128)
+    img_bgr = resize_keep_aspect_and_pad(img_bgr, 512, 128)
     img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)).float() / 255.0, 'h w c -> 1 h w c').cuda()
     y = model(img)[0].detach().cpu().numpy()
     ret = {}
@@ -45,17 +45,18 @@ def img2tags(model: DeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, float] 
             ret[model.tags[i]] = p
     return ret
 
+@torch.no_grad()
 def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     deepbooru_model = DeepDanbooruModel().cuda()
     deepbooru_model.load_state_dict(torch.load('model-resnet_custom_v3.pt'))
     with open(desc, 'r') as fp :
-        objects = create_objects_from_descriptor(fp.read())
+        objects, postprocess = create_objects_from_descriptor(fp.read())
     report_freq = 10
     last_time = time.time()
     next_milestone = last_time + report_freq
     n_frames = 0
     n_frames_cur_milestone = 0
-    for frame, filename, counter in video_frame_generator(src) :
+    for frame, filename, counter in video_frame_generator_transnetv2(src) :
         counter2 = 0
         display_image = frame.copy()
         for char_shot, (x1, y1), (x2, y2) in character_shot_generator(frame) :
@@ -67,6 +68,7 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
                 print(tags)
                 obj = objects.match(tags)
                 if obj is not None :
+                    tags = postprocess.apply(obj, tags)
                     target_root = os.path.join(dst, obj)
                     os.makedirs(target_root, exist_ok = True)
                     target = os.path.join(target_root, f'{filename}_{counter}_{counter2}.{format}')

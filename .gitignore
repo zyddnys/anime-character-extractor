@@ -3,4 +3,5 @@
 *.pt
 dataset/
 test2/
+test3/
 __pycache__
