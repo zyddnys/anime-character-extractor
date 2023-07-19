@@ -30,7 +30,10 @@ TAG: /[\w\d\_]+[\w\d\_\(\)]*/
 POSTPROCESS_TAG: /[\*\w\d\_]+/
 DOUBLE_QUOTED_STRING  : /"[^"]*"/
 
+COMMENT: /\/\/.*\n/
+
 %import common.CNAME
 %import common.NUMBER
 %import common.WS
 %ignore WS
+%ignore COMMENT

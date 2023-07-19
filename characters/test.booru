@@ -10,7 +10,7 @@ objects {
     lainie_cyan = black_hair>0.82 red_eyes>0.82;
 }
 postprocess {
-    * regex "[\w\_]*\(fate\)" drop;
+    * regex "[\w\_]*\(fate\)" drop; // drop any _(fate) tags
     * category character drop;
     * category copyright drop;
     * prob 0.8 drop;
@@ -22,3 +22,4 @@ postprocess {
     * regex ".*\_braid.*" drop;
     euphyllia_magenta any append purple_eyes grey_hair;
 }
+// line comment test
