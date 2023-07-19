@@ -1,5 +1,5 @@
 # Anime character extractor
-Extract anime characters from anime video files, so they can later be used for texture inversion or other tasks
+Extract anime characters from anime video files, so they can later be used for training LoRA or other tasks
 # Usage
 `python main.py -i K:\anime\ReincarnatedPrincess -d characters\ReincarnatedPrincess.booru -o output\ReincarnatedPrincess\`
 # Known issues
