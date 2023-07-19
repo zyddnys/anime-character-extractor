@@ -6,57 +6,44 @@ import os
 import urllib.request
 import re
 
-from lark import Lark, ParseTree, Tree
+from lark import Lark, ParseTree, Tree, Transformer, v_args
 from typing import Dict, List, Optional, Set, Tuple
 
 PARSER = None
 
 class SingleObject :
-    def __init__(self, object_name: str, tree: ParseTree) -> None :
+    def __init__(self, object_name: str, condition) -> None :
         self.object_name = object_name
-        self.tree = tree
+        self.condition = condition
 
     def match(self, tags: Dict[str, float]) -> bool :
-        def match_single_tag(t: ParseTree) :
-            tag = str(t.children[0])
-            cmp = str(t.children[1])
-            prob = float(t.children[2])
+        def match_single_tag(tag, op, prob) :
             if tag in tags :
                 p = tags[tag]
-                if cmp == '>' :
+                if op == '>' :
                     if p > prob :
                         return True
-                elif cmp == '<' :
+                elif op == '<' :
                     if p < prob :
                         return True
             return False
-        def match_and_query(t: ParseTree) :
-            ret = True
-            for c in t.children :
-                if c.data == 'and_query' :
-                    ret = ret and match_and_query(c)
-                elif c.data == 'single_tag' :
-                    ret = ret and match_single_tag(c)
-                elif c.data == 'query' :
-                    ret = ret and match_query(c)
-            return ret
-        def match_query(t: ParseTree) :
-            ret = False
-            for c in t.children :
-                if c.data == 'and_query' :
-                    ret = ret or match_and_query(c)
-                elif c.data == 'single_tag' :
-                    ret = ret or match_single_tag(c)
-                elif c.data == 'query' :
-                    ret = ret or match_query(c)
-            return ret
-        if self.tree.data == 'query' :
-            return match_query(self.tree)
-        elif self.tree.data == 'and_query' :
-            return match_and_query(self.tree)
-        else :
-            raise NotImplemented
-
+        def handle_condition(kind, args) :
+            if kind == 'and' :
+                passed = True
+                for cdt in args :
+                    passed = passed and handle_condition(*cdt)
+                return passed
+            elif kind == 'or' :
+                passed = False
+                for cdt in args :
+                    passed = passed or handle_condition(*cdt)
+                return passed
+            elif kind == 'not' :
+                return not handle_condition(*args)
+            elif kind == 'single_tag' :
+                return match_single_tag(*args)
+        return handle_condition(*self.condition)
+        
 class MultipleObjects :
     def __init__(self, objects: List[SingleObject]) -> None:
         self.objects = objects
@@ -232,6 +219,25 @@ class Configs :
 def verify_descriptor(tree: ParseTree) -> bool :
     return True
 
+class TagQueryTransformer(Transformer) :
+    @v_args(inline = True)
+    def single_tag(self, tag, compare, number):
+        return ('single_tag', (str(tag), str(compare), float(number)))
+    
+    @v_args(inline = True)
+    def not_expr(self, not_symbol, single_tag) :
+        return ('not', single_tag)
+    
+    def or_expr(self, args) :
+        return ('or', list(args))
+
+    def and_expr(self, args) :
+        return ('and', list(args))
+    
+    @v_args(inline = True)
+    def object(self, obj_name, conditions) :
+        return (str(obj_name), conditions)
+
 def create_objects_from_descriptor(d: str) -> Tuple[Configs, MultipleObjects, TagPostprocess] :
     global PARSER
     if PARSER is None :
@@ -243,8 +249,8 @@ def create_objects_from_descriptor(d: str) -> Tuple[Configs, MultipleObjects, Ta
     postprocess_tree = tree.children[2]
     objects: List[SingleObject] = []
     if verify_descriptor(objects_tree) :
-        for t in objects_tree.children :
-            objects.append(SingleObject(t.children[0], t.children[1]))
+        for (objname, condition) in objects_tree.children :
+            objects.append(SingleObject(objname, condition))
     else :
         raise RuntimeError()
     return Configs(configs_tree), MultipleObjects(objects), TagPostprocess(postprocess_tree)
@@ -253,8 +259,8 @@ def test() :
     global PARSER
     if PARSER is None :
         with open('object_descriptor.lark', 'r') as fp :
-            PARSER = Lark(fp)
-    with open('characters\ReincarnatedPrincess.booru', 'r') as fp :
+            PARSER = Lark(fp, parser = 'lalr', transformer = TagQueryTransformer())
+    with open('characters/test.booru', 'r') as fp :
         object_file_str = fp.read()
     configs, objects, postproc = create_objects_from_descriptor(object_file_str)
     obj1 = {

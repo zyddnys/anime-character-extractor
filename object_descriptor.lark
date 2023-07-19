@@ -1,16 +1,12 @@
-
 start: config_statement object_statement postprocess_statement
 
 ?postprocess_statement: "postprocess" "{" postprocess* "}"
-
-?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category|postprocess_match_prob|postprocess_match_exact|postprocess_match_any] [postprocess_action_drop|postprocess_action_append]";"
-
+?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category | postprocess_match_prob | postprocess_match_exact | postprocess_match_any] [postprocess_action_drop | postprocess_action_append] ";"
 ?postprocess_match_regex: "regex" DOUBLE_QUOTED_STRING
 ?postprocess_match_category: "category" CNAME
 ?postprocess_match_prob: "prob" NUMBER
 ?postprocess_match_exact: "exact" TAG
 ?postprocess_match_any: "any"
-
 ?postprocess_action_drop: "drop"
 ?postprocess_action_append: "append" TAG+
 
@@ -18,29 +14,23 @@ start: config_statement object_statement postprocess_statement
 ?config: TAG "=" DOUBLE_QUOTED_STRING ";"
 
 ?object_statement: "objects" "{" object+ "}"
-
 ?object: TAG "=" query ";"
 
-?query: [and_query | query "or" and_query]
-
-?and_query: [unary_query | and_query and_query | and_query "and" and_query]
-
-?unary_query: [primary_query | "not" primary_query]
-
-?primary_query: ["(" query ")" | single_tag]
-
+?query: or_expr
+?or_expr: and_expr ("or" and_expr)*
+?and_expr: not_expr ("and" not_expr | not_expr)*
+?not_expr: not_symbol* atom
+?atom: "(" or_expr ")" | single_tag
 ?single_tag: TAG COMPARE NUMBER
+?not_symbol: "NOT"
 
+NOT_SYMBOL: /NOT/
 COMPARE: /[<>]/
 TAG: /[\w\d\_]+[\w\d\_\(\)]*/
 POSTPROCESS_TAG: /[\*\w\d\_]+/
 DOUBLE_QUOTED_STRING  : /"[^"]*"/
 
-// imports WORD from library
-%import common.CNAME   
+%import common.CNAME
 %import common.NUMBER
 %import common.WS
-%import common.DOUBLE_QUOTED_STRING  
-
-// Disregard spaces in text
 %ignore WS
