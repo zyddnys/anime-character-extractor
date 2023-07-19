@@ -1,17 +1,21 @@
-// A bunch of words
-start: object_statement postprocess_statement*
+
+start: config_statement object_statement postprocess_statement
 
 ?postprocess_statement: "postprocess" "{" postprocess* "}"
 
-?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category|postprocess_match_prob|postprocess_match_exact] [postprocess_action_drop|postprocess_action_append]";"
+?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category|postprocess_match_prob|postprocess_match_exact|postprocess_match_any] [postprocess_action_drop|postprocess_action_append]";"
 
 ?postprocess_match_regex: "regex" DOUBLE_QUOTED_STRING
 ?postprocess_match_category: "category" CNAME
 ?postprocess_match_prob: "prob" NUMBER
 ?postprocess_match_exact: "exact" TAG
+?postprocess_match_any: "any"
 
 ?postprocess_action_drop: "drop"
 ?postprocess_action_append: "append" TAG+
+
+?config_statement: "configs" "{" config+ "}"
+?config: TAG "=" DOUBLE_QUOTED_STRING ";"
 
 ?object_statement: "objects" "{" object+ "}"
 
@@ -25,9 +29,10 @@ start: object_statement postprocess_statement*
 
 ?primary_query: ["(" query ")" | single_tag]
 
-?single_tag: TAG ">" NUMBER
+?single_tag: TAG COMPARE NUMBER
 
-TAG: /[\w\d\_]+/
+COMPARE: /[<>]/
+TAG: /[\w\d\_]+[\w\d\_\(\)]*/
 POSTPROCESS_TAG: /[\*\w\d\_]+/
 DOUBLE_QUOTED_STRING  : /"[^"]*"/
 

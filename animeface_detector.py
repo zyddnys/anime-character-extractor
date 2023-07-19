@@ -20,9 +20,8 @@ def detect(img_rgb_hwc: np.ndarray, detector = 'cv') :
     if detector == 'cv' :
         if CV_DETECTOR is None :
             CV_DETECTOR = cv2.CascadeClassifier('lbpcascade_animeface.xml')
-        #img2, ratio = resize_keep_aspect(img_rgb_hwc, 768)
+        img2, ratio = resize_keep_aspect(img_rgb_hwc, 720)
         img2 = img_rgb_hwc
-        ratio = 1
         gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)
         faces = CV_DETECTOR.detectMultiScale(gray,

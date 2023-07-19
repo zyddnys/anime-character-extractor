@@ -13,6 +13,7 @@ from video_reader import image_files_generator, video_frame_generator, resize_ke
 from animeface_detector import detect as detect_face
 from deep_danbooru_model import RegDeepDanbooruModel, resize_keep_aspect_max
 from object_descriptor_parser import create_objects_from_descriptor
+from anime_seg import get_seg_image
 
 def unsharp(image):
     gaussian_3 = cv2.GaussianBlur(image, (3, 3), 2.0)
@@ -20,9 +21,9 @@ def unsharp(image):
 
 def character_shot_generator(img: np.ndarray) :
     coords_nn, offsets = detect_face(img, 'nn')
-    up_ext = 1.5
-    down_ext = 11.4
-    h_ext = 1.45
+    up_ext = 2.2
+    down_ext = 15.4
+    h_ext = 2.5
     for coord, offset in zip(coords_nn, offsets) :
         x1, y1 = tuple(coord[:2])
         x2, y2 = tuple(coord[2:])
@@ -48,7 +49,7 @@ def img2tags(model: RegDeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, floa
 def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     deepbooru_model = RegDeepDanbooruModel()
     with open(desc, 'r') as fp :
-        objects, postprocess = create_objects_from_descriptor(fp.read())
+        configs, objects, postprocess = create_objects_from_descriptor(fp.read())
     report_freq = 10
     last_time = time.time()
     next_milestone = last_time + report_freq
@@ -62,6 +63,7 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
                 cv2.rectangle(display_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
                 cv2.imshow('frame', display_image)
                 cv2.waitKey(1)
+                char_shot, raw_shot, mask = get_seg_image(char_shot)
                 tags = img2tags(deepbooru_model, char_shot)
                 print(tags)
                 obj = objects.match(tags)
@@ -70,11 +72,15 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
                     target_root = os.path.join(dst, obj)
                     os.makedirs(target_root, exist_ok = True)
                     target = os.path.join(target_root, f'{filename}_{counter}_{counter2}.{format}')
+                    target_raw = os.path.join(target_root, f'{filename}_{counter}_{counter2}_raw.{format}')
+                    target_mask = os.path.join(target_root, f'{filename}_{counter}_{counter2}_mask.{format}')
                     target_txt = os.path.join(target_root, f'{filename}_{counter}_{counter2}.txt')
                     tags_str = ','.join([t for t in tags.keys() if not t.startswith('rating:')]).replace('_', ' ')
                     with open(target_txt, 'w') as fp :
                         fp.write(tags_str)
                     cv2.imwrite(target, char_shot)
+                    cv2.imwrite(target_raw, raw_shot)
+                    cv2.imwrite(target_mask, mask)
                     counter2 += 1
         n_frames += 1
         n_frames_cur_milestone += 1

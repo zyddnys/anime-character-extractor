@@ -42,10 +42,10 @@ def video_frame_generator(path: str, verbose = False) :
         while True :
             # Capture the video frame
             # by frame
-            ret, frame = vid.read()
+            ret, frame_raw = vid.read()
             if not ret :
                 break
-            frame = resize_keep_aspect(frame, 640)
+            frame = resize_keep_aspect(frame_raw, 640)
         
             # Display the resulting frame
             coords, _ = detect_anime_face(frame, detector = 'cv')
@@ -63,7 +63,7 @@ def video_frame_generator(path: str, verbose = False) :
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             if len(coords) > 0 and ctr % 12 == 0 :
-                yield frame, filename, ctr
+                yield frame, frame_raw, filename, ctr
             ctr += 1
         vid.release()
 
@@ -132,27 +132,33 @@ def _video_shot_generator(model, video_filename: str, frame_size: int = 720, max
     ratio = frame_size / min(width, height)
     new_width = round(width * ratio)
     new_height = round(height * ratio)
-    shot_buffer = np.zeros((max_shot_length_sec * fps, new_height, new_width, 3), dtype = np.uint8)
+    shot_buffer = np.zeros((max_shot_length_sec * fps, height, width, 3), dtype = np.uint8)
     video_stream, err = ffmpeg.input(video_filename).output(
         "pipe:", format="rawvideo", pix_fmt="rgb24", s="48x27"
     ).run(capture_stdout=True, capture_stderr=True)
     video = np.frombuffer(video_stream, np.uint8).reshape([-1, 27, 48, 3])
-    single_frame_pred = _predict_frames(model, video)
+    while True :
+        try :
+            single_frame_pred = _predict_frames(model, video)
+            break
+        except Exception :
+            import traceback
+            traceback.print_exc()
     vid = cv2.VideoCapture(video_filename)
     ctr = -1
     shot_frame_counter = 0
     while True :
         # Capture the video frame
         # by frame
-        ret, frame = vid.read()
+        ret, frame_raw = vid.read()
         if not ret :
             break
         ctr += 1
-        frame = resize_keep_aspect(frame, frame_size)
+        frame = resize_keep_aspect(frame_raw, frame_size)
         shot_trans_prob = single_frame_pred[ctr]
-        shot_buffer[shot_frame_counter] = frame
+        shot_buffer[shot_frame_counter] = frame_raw
         shot_frame_counter += 1
-        if shot_frame_counter >= max_shot_length_sec * fps or shot_trans_prob > 0.5 :
+        if shot_frame_counter >= max_shot_length_sec * fps or shot_trans_prob > 0.2 :
             if shot_frame_counter > 0 :
                 yield shot_buffer[: shot_frame_counter], ctr - shot_frame_counter + 1
             shot_frame_counter = 0
