@@ -249,8 +249,12 @@ def create_objects_from_descriptor(d: str) -> Tuple[Configs, MultipleObjects, Ta
     postprocess_tree = tree.children[2]
     objects: List[SingleObject] = []
     if verify_descriptor(objects_tree) :
-        for (objname, condition) in objects_tree.children :
+        if isinstance(objects_tree, tuple) :
+            (objname, condition) = objects_tree
             objects.append(SingleObject(objname, condition))
+        else :
+            for (objname, condition) in objects_tree.children :
+                objects.append(SingleObject(objname, condition))
     else :
         raise RuntimeError()
     return Configs(configs_tree), MultipleObjects(objects), TagPostprocess(postprocess_tree)
