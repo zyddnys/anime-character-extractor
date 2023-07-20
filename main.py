@@ -11,7 +11,7 @@ import argparse
 
 from video_reader import image_files_generator, video_frame_generator, resize_keep_aspect_and_pad, video_frame_generator_transnetv2
 from animeface_detector import detect as detect_face
-from deep_danbooru_model import RegDeepDanbooruModel, resize_keep_aspect_max
+from wd_ensemble_tagger import MultiTagger
 from object_descriptor_parser import create_objects_from_descriptor
 from anime_seg import get_seg_image
 
@@ -40,16 +40,16 @@ def character_shot_generator(img: np.ndarray) :
         x2 = int(min(img.shape[1] - 1, x2))
         yield img[y1: y2, x1: x2], (x1, y1), (x2, y2)
 
-def img2tags(model: RegDeepDanbooruModel, img_bgr: np.ndarray) -> Dict[str, float] :
-    img_bgr = resize_keep_aspect_max(img_bgr, 768)
-    img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)).float() / 127.5 - 1.0, 'h w c -> 1 c h w').cuda()
-    return model.predict(img)
+def img2tags(tagger: MultiTagger, img_bgr: np.ndarray, thres: float) -> Dict[str, float] :
+    img_in = tagger.proprocess_np_bgr(img_bgr)
+    return tagger.label_batch(img_in)
 
 @torch.no_grad()
 def main(src: str, dst: str, desc: str, format: str = 'jpg') :
-    deepbooru_model = RegDeepDanbooruModel()
+    tagger = MultiTagger()
     with open(desc, 'r') as fp :
         configs, objects, postprocess = create_objects_from_descriptor(fp.read())
+    tag_threshold = float(configs.cfg['min_prob'])
     report_freq = 10
     last_time = time.time()
     next_milestone = last_time + report_freq
@@ -64,7 +64,7 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
                 cv2.imshow('frame', display_image)
                 cv2.waitKey(1)
                 char_shot, raw_shot, mask = get_seg_image(char_shot)
-                tags = img2tags(deepbooru_model, char_shot)
+                tags = img2tags(tagger, char_shot, tag_threshold)
                 print(tags)
                 obj = objects.match(tags)
                 if obj is not None :

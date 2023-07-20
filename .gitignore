@@ -9,3 +9,6 @@ test3/
 __pycache__
 test*/
 output*/
+tag2cat.txt
+models/
+engines/
