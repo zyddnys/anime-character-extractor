@@ -1,7 +1,7 @@
 configs {
     tagger = "reg";
     min_prob = "0.35";
-    min_size = "200"; // only keep cropped character image with minium edge size 200
+    min_size = "200"; // only keep cropped character image with minimum edge size 200
     grounding_dino_prompt = "anime character";
     segment = "false";
 }

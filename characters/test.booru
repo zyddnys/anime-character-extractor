@@ -1,6 +1,9 @@
 configs {
+    tagger = "reg";
     min_prob = "0.35";
-    min_prob2 = "0.35";
+    min_size = "200"; // only keep cropped character image with minimum edge size 200
+    grounding_dino_prompt = "anime character";
+    segment = "false";
 }
 objects {
     * = 1girl>0.9 NOT (2girls>0.1 multiple_girls>0.1) NOT (blurry>0.2 depth_of_field>0.2) NOT upside-down>0.2;
