@@ -7,7 +7,7 @@ configs {
     segment = "false";
 }
 objects {
-    * = 1girl>0.9 NOT (2girls>0.1 multiple_girls>0.1);
+    * = 1girl>0.9 NOT (2girls>0.1 multiple_girls>0.1) NOT (blurry>0.2 depth_of_field>0.2) NOT upside-down>0.2;
     anisphia_wynn_palettia = 1girl>0.85 blonde_hair>0.5 green_eyes>0.5;
     euphyllia_magenta = 1girl>0.85 (white_hair>0.4 or grey_hair>0.5 or silver_hair>0.5) purple_eyes>0.5;
     tilty_claret = 1girl>0.85 (black_hair>0.5 or purple_hair>0.5) (purple_eyes>0.5 or red_eyes>0.5);
