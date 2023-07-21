@@ -5,6 +5,8 @@ import requests
 import tqdm
 import sys
 import hashlib
+import cv2
+import numpy as np
 
 def get_digest(file_path: str) -> str:
     h = hashlib.sha256()
@@ -81,3 +83,16 @@ def download_model_file(filename: str, url: str, sha256: str) :
         print(f'Hash mismatch for {filename}, calculated {calc_sha256} != expected {sha256}')
         raise Exception()
 
+
+def resize_keep_aspect(img: np.ndarray, size: int) :
+    ratio = (float(size)/min(img.shape[0], img.shape[1]))
+    new_width = round(img.shape[1] * ratio)
+    new_height = round(img.shape[0] * ratio)
+    return cv2.resize(img, (new_width, new_height), interpolation = cv2.INTER_LINEAR), ratio
+
+def resize_keep_aspect_max(img: np.ndarray, size: int):
+    ratio = size / max(img.shape[0], img.shape[1])
+    new_width = round(img.shape[1] * ratio)
+    new_height = round(img.shape[0] * ratio)
+    img2 = cv2.resize(img, (new_width, new_height), cv2.INTER_LANCZOS4)
+    return img2

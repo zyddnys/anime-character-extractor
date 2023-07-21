@@ -1,4 +1,5 @@
 configs {
+    tagger = "reg";
     min_prob = "0.35";
     min_size = "200"; // only keep cropped character image with minium edge size 200
     prefilter = "solo>0.8 crowd<0.1"; // filter to keep frames with only 1 character

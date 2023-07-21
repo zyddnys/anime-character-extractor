@@ -1,2 +1,8 @@
 ffmpeg-python
 tensorrt
+einops
+torch
+opencv-python
+numpy
+tqdm
+simplejson

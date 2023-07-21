@@ -247,6 +247,16 @@ class MultiTagger :
             final_tags.append(merged_dict)
         return final_tags
 
+TAGGER_WD_ENSEMBLE = None
+
+def tag_image(img_bgr: np.ndarray, threshold: float) :
+    global TAGGER_WD_ENSEMBLE
+    if TAGGER_WD_ENSEMBLE is None :
+        download_models()
+        TAGGER_WD_ENSEMBLE = MultiTagger()
+    img_in = TAGGER_WD_ENSEMBLE.proprocess_np_bgr(img_bgr)
+    return TAGGER_WD_ENSEMBLE.label_batch(img_in)[0]
+
 def test() :
     download_models()
 
