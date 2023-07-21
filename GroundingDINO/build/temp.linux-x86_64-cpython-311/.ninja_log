@@ -1,0 +1,5 @@
+# ninja log v5
+1	641	1689742138007686341	/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/build/temp.linux-x86_64-cpython-311/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/cuda_version.o	443736d2df73dad7
+0	3795	1689742141171690894	/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/build/temp.linux-x86_64-cpython-311/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cpu.o	aa2cf4152c39546a
+1	11832	1689742149207702478	/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/build/temp.linux-x86_64-cpython-311/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/vision.o	4686e5e0de6c0420
+1	15198	1689742152567707327	/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/build/temp.linux-x86_64-cpython-311/home/zyddnys/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cuda.o	2f041548098b06c8
