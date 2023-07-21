@@ -6,17 +6,17 @@ configs {
     segment = "false";
 }
 objects {
-    anisphia_wynn_palettia = blonde_hair>0.5 green_eyes>0.5;
-    euphyllia_magenta = (white_hair>0.4 or grey_hair>0.5 or silver_hair>0.5) purple_eyes>0.5;
-    tilty_claret = (black_hair>0.5 or purple_hair>0.5) (purple_eyes>0.5 or red_eyes>0.5);
-    ilia_coral = red_hair>0.5 blue_eyes>0.5;
-    lainie_cyan = black_hair>0.5 red_eyes>0.5;
+    anisphia_wynn_palettia = 1girl>0.85 blonde_hair>0.5 green_eyes>0.5;
+    euphyllia_magenta = 1girl>0.85 (white_hair>0.4 or grey_hair>0.5 or silver_hair>0.5) purple_eyes>0.5;
+    tilty_claret = 1girl>0.85 (black_hair>0.5 or purple_hair>0.5) (purple_eyes>0.5 or red_eyes>0.5);
+    ilia_coral = 1girl>0.85 red_hair>0.5 blue_eyes>0.5;
+    lainie_cyan = 1girl>0.85 black_hair>0.5 red_eyes>0.5;
 }
 postprocess {
     * regex "[\w\_]*\(fate\)" drop;
     * category character drop;
     * category copyright drop;
-    * prob 0.4 drop;
+    * prob 0.35 drop;
     euphyllia_magenta regex "\w*braid\w*" drop;
     * regex ".*\_hair.*" drop;
     * regex ".*\_eyes.*" drop;
