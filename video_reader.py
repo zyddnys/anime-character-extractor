@@ -178,9 +178,10 @@ def video_frame_generator_transnetv2(path: str, verbose = False) :
         TRANSNETV2.load_state_dict(torch.load("models/transnetv2-pytorch-weights.pth"))
         TRANSNETV2 = TRANSNETV2.eval().cuda()
     if os.path.isdir(path) :
-        files = glob.glob(os.path.join(path, '*.*'))
+        files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames]
     else :
         files = [path]
+    print('[Video] Found', len(files), 'files in', path)
     for f in files :
         try :
             (_, filename) = os.path.split(f)

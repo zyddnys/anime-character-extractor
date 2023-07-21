@@ -46,13 +46,25 @@ class SingleObject :
         
 class MultipleObjects :
     def __init__(self, objects: List[SingleObject]) -> None:
-        self.objects = objects
+        self.objects = [obj for obj in objects if obj.object_name != 'PRECONDITION']
+        self.precondition = None
+        for obj in objects :
+            if obj.object_name == 'PRECONDITION' :
+                self.precondition = obj
 
     def match(self, tags: Dict[str, float]) -> Optional[str] :
         for obj in self.objects :
             if obj.match(tags) :
                 return obj.object_name
         return None
+
+    def has_precondition(self) -> bool :
+        return self.precondition is not None
+
+    def match_precondition(self, tags: Dict[str, float]) -> bool :
+        if self.precondition is None :
+            return True
+        return self.precondition.match(tags)
 
     # def match_and_filter(self, tags: Dict[str, float]) -> Optional[Tuple[str, Dict[str, float]]] :
     #     for obj in self.objects :
@@ -273,18 +285,10 @@ def test() :
     if PARSER is None :
         with open('object_descriptor.lark', 'r') as fp :
             PARSER = Lark(fp, parser = 'lalr', transformer = TagQueryTransformer())
-    with open('characters/test.booru', 'r') as fp :
+    with open('characters/konosuba.booru', 'r') as fp :
         object_file_str = fp.read()
     configs, objects, postproc = create_objects_from_descriptor(object_file_str)
-    obj1 = {
-        "1girl": 0.9913652,
-        "hair_bow": 0.97715604,
-        "purple_eyes": 0.99842465,
-        "shirt": 0.7659578,
-        "silver_hair": 0.9591773,
-        "a_(b)": 0.9,
-        "touhou": 1.0
-    }
+    obj1 = {'1girl': 0.9995528, 'solo': 0.99735606, 'long_hair': 0.98722327, 'breasts': 0.65833545, 'blush': 0.90023476, 'smile': 0.9793658, 'looking_at_viewer': 0.9446239, 'blue_eyes': 0.98489827, 'blonde_hair': 0.9977075, 'skirt': 0.58093333, 'large_breasts': 0.45485604, 'bangs': 0.68994427, 'hair_ornament': 0.8278184, 'simple_background': 0.83087015, 'dress': 0.93080366, 'shirt': 0.3509593, 'long_sleeves': 0.90752345, 'eyebrows_visible_through_hair': 0.79850316, 'medium_breasts': 0.40998083, 'very_long_hair': 0.4000318, 'hair_between_eyes': 0.57388747, 'standing': 0.36010072, 'braid': 0.96747386, 'closed_mouth': 0.6984893, 'food': 0.55138767, 'upper_body': 0.73705965, 'frills': 0.6462211, 'alternate_costume': 0.7812935, 'looking_back': 0.52319884, 'from_behind': 0.4070084, 'apron': 0.97278893, 'white_dress': 0.9071166, 'from_side': 0.51697314, 'single_braid': 0.73256063, 'fruit': 0.63991135, 'gradient': 0.48306903, 'gradient_background': 0.5170844, 'leaf': 0.48402834, 'no_headwear': 0.77966315, 'no_hat': 0.7410354, 'waist_apron': 0.5234399, 'side_braid': 0.3765417, 'yellow_background': 0.879439, 'maid_apron': 0.45189977, 'white_apron': 0.83162624, 'frilled_apron': 0.6901333, 'skirt_hold': 0.5131409}
     objname = objects.match(obj1)
     print('matched', objname)
     old_tags = obj1

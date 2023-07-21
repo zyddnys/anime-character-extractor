@@ -48,6 +48,10 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     n_frames_cur_milestone = 0
     print('[Main] Process start')
     for frame, filename, counter in video_frame_generator_transnetv2(src) :
+        if objects.has_precondition() :
+            whole_frame_tags = tag_image(frame, tag_threshold, model = tagger)
+            if not objects.match_precondition(whole_frame_tags) :
+                continue
         counter2 = 0
         for char_shot, (x1, y1), (x2, y2) in character_shot_generator(frame, grounding_dino_prompt) :
             if char_shot.shape[1] > min_edge_size and char_shot.shape[0] > min_edge_size :
