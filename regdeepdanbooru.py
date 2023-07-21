@@ -68,8 +68,6 @@ class RegDeepDanbooru(nn.Module) :
     def __init__(self) :
         super(RegDeepDanbooru, self).__init__()
         self.backbone = build_model()
-        num_p = sum(p.numel() for p in self.backbone.parameters() if p.requires_grad)
-        print( 'Backbone has %d parameters' % num_p )
         self.head_danbooru = nn.Linear(2016, 4096)
 
     def forward_train_head(self, images) :
@@ -124,6 +122,6 @@ def tag_image(img_bgr: np.ndarray, threshold: float) :
     if TAGGER_REGDEEPDANBOORU is None :
         download_models()
         TAGGER_REGDEEPDANBOORU = RegDeepDanbooruModel()
-    img_bgr = resize_keep_aspect_max(img_bgr, 768)
+    img_bgr = resize_keep_aspect_max(img_bgr, 640)
     img = einops.rearrange(torch.from_numpy(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)).float() / 127.5 - 1.0, 'h w c -> 1 c h w').cuda()
     return TAGGER_REGDEEPDANBOORU.predict(img, threshold)
