@@ -113,7 +113,7 @@ def _predict_frames(model, frames: np.ndarray):
         predictions.append(single_frame_pred[0, 25:75, 0],
                             )
 
-        print("\r[TransNetV2] Processing video frames {}/{}".format(
+        print("\r[Video] Processing video frames {}/{}".format(
             min(len(predictions) * 50, len(frames)), len(frames)
         ), end="")
     print("")
@@ -165,11 +165,18 @@ def _video_shot_generator(model, video_filename: str, frame_size: int = 720, max
     if shot_frame_counter > 0 :
         yield shot_buffer[: shot_frame_counter], ctr - shot_frame_counter + 1
 
+def download_models() :
+    from utils import download_model_file
+    download_model_file('models/transnetv2-pytorch-weights.pth', 'https://github.com/zyddnys/anime-character-extractor/releases/download/files/transnetv2-pytorch-weights.pth', 'a313d0b3bebfa9a71914b375bfdf918a30b5c3b1e6be51972d35dd8078b442de')
+
 def video_frame_generator_transnetv2(path: str, verbose = False) :
     global TRANSNETV2
-    TRANSNETV2 = TransNetV2()
-    TRANSNETV2.load_state_dict(torch.load("transnetv2-pytorch-weights.pth"))
-    TRANSNETV2 = TRANSNETV2.eval().cuda()
+    if TRANSNETV2 is None :
+        print('[Video] Loading TransNetV2')
+        download_models()
+        TRANSNETV2 = TransNetV2()
+        TRANSNETV2.load_state_dict(torch.load("models/transnetv2-pytorch-weights.pth"))
+        TRANSNETV2 = TRANSNETV2.eval().cuda()
     if os.path.isdir(path) :
         files = glob.glob(os.path.join(path, '*.*'))
     else :
@@ -177,6 +184,11 @@ def video_frame_generator_transnetv2(path: str, verbose = False) :
     for f in files :
         try :
             (_, filename) = os.path.split(f)
+            print('[Video] Processing', f)
+            ext = os.path.splitext(filename)[-1].lower()
+            if ext in ['.png', '.jpg', '.webp', '.jpeg', '.bmp'] :
+                img = cv2.imread(f)
+                yield img, filename, 0
             for shot_frames, shot_start_frmae_index in _video_shot_generator(TRANSNETV2, f) :
                 selected_shot_local_index = 0
                 mid_idx = len(shot_frames) // 2

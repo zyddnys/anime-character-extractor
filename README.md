@@ -9,9 +9,10 @@ Extract anime characters from anime video files, so they can later be used for t
 1. Custom language to define characters using tags and remove/append tags for better LoRA tagging
 2. Use ensemble of danbooru taggers for better tagging
 3. Use TensorRT for better performance
+4. Grounding DINO for character detection
 # TODO
 1. <s>Use TransNetV2 to segment video</s>, for each shot we run multiple CascadeClassifier in parallel and yield a single frame with faces as far away from the edge as possible
-2. Use character detector instead of face detector
+2. <s>Use character detector instead of face detector</s>
 3. <s>Add tag filtering in object descriptor file to remove incorrect tags from generated txt file</s>
 4. Speed up, but how?
 5. Merge multiple frames into a single frame if their optical flow all point to the same direction
@@ -20,7 +21,7 @@ Extract anime characters from anime video files, so they can later be used for t
 ```
 https://github.com/hysts/anime-face-detector
 https://github.com/nagadomi/lbpcascade_animeface
-https://github.com/AUTOMATIC1111/TorchDeepDanbooru
 https://github.com/soCzech/TransNetV2
 https://huggingface.co/spaces/SmilingWolf/wd-v1-4-tags
+https://github.com/IDEA-Research/Grounded-Segment-Anything
 ```

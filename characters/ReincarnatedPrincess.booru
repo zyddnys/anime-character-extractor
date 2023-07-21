@@ -1,12 +1,16 @@
 configs {
     min_prob = "0.35";
+    min_size = "200"; // only keep cropped character image with minium edge size 200
+    prefilter = "solo>0.8 crowd<0.1"; // filter to keep frames with only 1 character
+    grounding_dino_prompt = "anime character";
+    segment = "false";
 }
 objects {
-    anisphia_wynn_palettia = blonde_hair>0.82 green_eyes>0.82;
-    euphyllia_magenta = (grey_hair>0.82 or silver_hair>0.82) purple_eyes>0.82;
-    tilty_claret = (black_hair>0.82 or purple_hair>0.82) (purple_eyes>0.82 or red_eyes>0.82);
-    ilia_coral = red_hair>0.82 blue_eyes>0.82;
-    lainie_cyan = black_hair>0.82 red_eyes>0.82;
+    anisphia_wynn_palettia = blonde_hair>0.5 green_eyes>0.5;
+    euphyllia_magenta = (white_hair>0.4 or grey_hair>0.5 or silver_hair>0.5) purple_eyes>0.5;
+    tilty_claret = (black_hair>0.5 or purple_hair>0.5) (purple_eyes>0.5 or red_eyes>0.5);
+    ilia_coral = red_hair>0.5 blue_eyes>0.5;
+    lainie_cyan = black_hair>0.5 red_eyes>0.5;
 }
 postprocess {
     * regex "[\w\_]*\(fate\)" drop;

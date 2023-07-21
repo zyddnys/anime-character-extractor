@@ -102,15 +102,7 @@ def smart_resize(img, size):
     return img
 
 import pandas as pd
-from utils import download_url_with_progressbar, get_digest
-
-def download_model_file(filename: str, url: str, sha256: str) :
-    if not os.path.exists(filename) :
-        download_url_with_progressbar(url, filename)
-    calc_sha256 = get_digest(filename)
-    if calc_sha256 != sha256 :
-        print(f'Hash mismatch for {filename}, calculated {calc_sha256} != expected {sha256}')
-        raise Exception()
+from utils import download_model_file
 
 def download_models() :
     os.makedirs('models', exist_ok = True)
@@ -119,9 +111,10 @@ def download_models() :
     download_model_file('models/vit.onnx', 'https://huggingface.co/SmilingWolf/wd-v1-4-vit-tagger-v2/resolve/main/model.onnx', '8a21cadd1f88a095094cafbffe3028c3cc3d97f4d58c54344c5994bcf48e24ac')
     download_model_file('models/swinv2.onnx', 'https://huggingface.co/SmilingWolf/wd-v1-4-swinv2-tagger-v2/resolve/main/model.onnx', '67740df7ede9a53e50d6e29c6a5c0d6c862f1876c22545d810515bad3ae17bb1')
     download_model_file('models/moat.onnx', 'https://huggingface.co/SmilingWolf/wd-v1-4-moat-tagger-v2/resolve/main/model.onnx', 'b8cef913be4c9e8d93f9f903e74271416502ce0b4b04df0ff1e2f00df488aa03')
+    download_model_file('models/selected_tags.csv', 'https://huggingface.co/SmilingWolf/wd-v1-4-moat-tagger-v2/raw/main/selected_tags.csv', '8c8750600db36233a1b274ac88bd46289e588b338218c2e4c62bbc9f2b516368')
 
 def load_labels() -> list[str]:
-    df = pd.read_csv('selected_tags.csv')
+    df = pd.read_csv('models/selected_tags.csv')
 
     tag_names = df["name"].tolist()
     rating_indexes = list(np.where(df["category"] == 9)[0])
@@ -183,9 +176,8 @@ class MultiTagger :
         self.exe_ctx = [engine.create_execution_context() for engine in self.engines]
         self.memory = [alloc_buf(engine) for engine in self.engines]
 
-    def proprocess_np_bgr(self, img_bgr: np.ndarray) :
+    def proprocess_np_bgr(self, image: np.ndarray) :
         height=448
-        image = img_bgr[:, :, ::-1]
 
         image = make_square(image, height)
         image = smart_resize(image, height)

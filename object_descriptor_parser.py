@@ -91,14 +91,11 @@ class PostprocessAction :
             return f'PostprocessAction::Append[{", ".join(self.tags)}]'
 
 def load_tag2cat() :
-    if os.path.exists('tag2cat.txt') :
-        with open('tag2cat.txt', 'r', encoding = 'utf-8') as fp :
-            lines = [s.strip().split(' ') for s in fp.readlines()]
-            return {s[0]: s[1] for s in lines if len(s) == 2}
-    else :
-        print('tag2cat.txt not found, downloading')
-        urllib.request.urlretrieve("https://github.com/zyddnys/anime-character-extractor/releases/download/files/tag2cat.txt", "tag2cat.txt")
-        return load_tag2cat()
+    from utils import download_model_file
+    download_model_file('models/tag2cat.txt', "https://github.com/zyddnys/anime-character-extractor/releases/download/files/tag2cat.txt", 'e5d4b2e144d47b044555e8ac72cd4a460d03e36000c5f6c5cc706003d4ada51e')
+    with open('models/tag2cat.txt', 'r', encoding = 'utf-8') as fp :
+        lines = [s.strip().split(' ') for s in fp.readlines()]
+        return {s[0]: s[1] for s in lines if len(s) == 2}
 
 def shorten_category(category: str) :
     if category == 'general' :
@@ -242,7 +239,7 @@ def create_objects_from_descriptor(d: str) -> Tuple[Configs, MultipleObjects, Ta
     global PARSER
     if PARSER is None :
         with open('object_descriptor.lark', 'r') as fp :
-            PARSER = Lark(fp)
+            PARSER = Lark(fp, parser = 'lalr', transformer = TagQueryTransformer())
     tree = PARSER.parse(d)
     configs_tree = tree.children[0]
     objects_tree = tree.children[1]

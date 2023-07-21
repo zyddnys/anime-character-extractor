@@ -72,3 +72,12 @@ def download_url_with_progressbar(url: str, path: str):
                         print(bar)
     else:
         raise Exception(f'Couldn\'t resolve url: "{url}" (Error: {r.status_code})')
+    
+def download_model_file(filename: str, url: str, sha256: str) :
+    if not os.path.exists(filename) :
+        download_url_with_progressbar(url, filename)
+    calc_sha256 = get_digest(filename)
+    if calc_sha256 != sha256 :
+        print(f'Hash mismatch for {filename}, calculated {calc_sha256} != expected {sha256}')
+        raise Exception()
+

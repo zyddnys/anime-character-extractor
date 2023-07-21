@@ -2,9 +2,6 @@
 import cv2
 import numpy as np
 
-from anime_face_detector import create_detector
-
-NN_DETECTOR = None
 CV_DETECTOR = None
 
 def resize_keep_aspect(img: np.ndarray, size: int) :
@@ -41,24 +38,4 @@ def detect(img_rgb_hwc: np.ndarray, detector = 'cv') :
             y = int(y / ratio)
             ret.append(np.array([x, y, x + w, y + h]))
             offset.append(0)
-    elif detector == 'nn' :
-        if NN_DETECTOR is None :
-            NN_DETECTOR = create_detector('yolov3')
-        img2, ratio = resize_keep_aspect(img_rgb_hwc, 768)
-        preds = NN_DETECTOR(img2)
-        face_score_threshold = 0.8
-        for pred in preds :
-            box = pred['bbox']
-            box, score = box[:4], box[4]
-            if score < face_score_threshold:
-                continue
-            box = np.round(box / ratio).astype(int)
-            w = box[2] - box[0]
-            h = box[3] - box[1]
-            pred_pts = pred['keypoints']
-            face_left_dist = np.sqrt(np.linalg.norm(pred_pts[23][:2] - pred_pts[1][:2]))
-            face_right_dist = np.sqrt(np.linalg.norm(pred_pts[23][:2] - pred_pts[3][:2]))
-            face_direction_ratio = (face_left_dist - face_right_dist) / h
-            ret.append(box)
-            offset.append(face_direction_ratio * 2000)
     return np.stack(ret, axis = 0) if ret else [], offset
