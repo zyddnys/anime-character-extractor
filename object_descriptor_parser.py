@@ -246,12 +246,24 @@ def create_objects_from_descriptor(d: str) -> Tuple[Configs, MultipleObjects, Ta
     postprocess_tree = tree.children[2]
     objects: List[SingleObject] = []
     if verify_descriptor(objects_tree) :
+        star_object = None
         if isinstance(objects_tree, tuple) :
             (objname, condition) = objects_tree
-            objects.append(SingleObject(objname, condition))
+            if objname == '*' :
+                star_object = condition
+            else :
+                objects.append(SingleObject(objname, condition))
         else :
             for (objname, condition) in objects_tree.children :
-                objects.append(SingleObject(objname, condition))
+                if objname == '*' :
+                    star_object = condition
+                else :
+                    objects.append(SingleObject(objname, condition))
+        if len(objects) == 0 :
+            raise Exception('Need at least one object')
+        if star_object is not None :
+            for i in range(len(objects)) :
+                objects[i].condition = ('and', [star_object, objects[i].condition])
     else :
         raise RuntimeError()
     return Configs(configs_tree), MultipleObjects(objects), TagPostprocess(postprocess_tree)
