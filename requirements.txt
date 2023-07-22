@@ -6,3 +6,5 @@ opencv-python
 numpy
 tqdm
 simplejson
+git+https://github.com/openai/CLIP.git
+faiss-cpu

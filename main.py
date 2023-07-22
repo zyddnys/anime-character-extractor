@@ -14,6 +14,7 @@ from anime_character_detector import detect_character
 from tagger import tag_image
 from object_descriptor_parser import create_objects_from_descriptor
 from anime_seg import get_seg_image
+from dedup import run_dedup
 
 def unsharp(image):
     gaussian_3 = cv2.GaussianBlur(image, (3, 3), 2.0)
@@ -35,11 +36,13 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     min_edge_size = int(configs.cfg['min_size'])
     grounding_dino_prompt = configs.cfg["grounding_dino_prompt"]
     do_segment = configs.cfg["segment"].lower() == "true" if "segment" in configs.cfg else False
+    dedup_threshold = float(configs.cfg['dedup_threshold']) if "dedup_threshold" in configs.cfg else -1
     print('tagger', tagger)
     print('tag_threshold', tag_threshold)
     print('min_edge_size', min_edge_size)
     print('grounding_dino_prompt', grounding_dino_prompt)
     print('do_segment', do_segment)
+    print('dedup_threshold', dedup_threshold)
 
     report_freq = 10
     last_time = time.time()
@@ -55,6 +58,10 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
         counter2 = 0
         for char_shot, (x1, y1), (x2, y2) in character_shot_generator(frame, grounding_dino_prompt) :
             if char_shot.shape[1] > min_edge_size and char_shot.shape[0] > min_edge_size :
+                if dedup_threshold > 0 :
+                    found_duplicate = run_dedup(char_shot, dedup_threshold)
+                    if found_duplicate :
+                        continue # skip duplicate
                 if do_segment :
                     char_shot, raw_shot, mask = get_seg_image(char_shot)
                 tags = tag_image(char_shot, tag_threshold, model = tagger)
