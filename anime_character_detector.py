@@ -72,19 +72,7 @@ def get_grounding_output(model, image, caption, box_threshold, text_threshold, w
     boxes_filt = boxes_filt[filt_mask]  # num_filt, 4
     logits_filt.shape[0]
 
-    # get phrase
-    tokenlizer = model.tokenizer
-    tokenized = tokenlizer(caption)
-    # build pred
-    pred_phrases = []
-    for logit, box in zip(logits_filt, boxes_filt):
-        pred_phrase = get_phrases_from_posmap(logit > text_threshold, tokenized, tokenlizer)
-        if with_logits:
-            pred_phrases.append(pred_phrase + f"({str(logit.max().item())[:4]})")
-        else:
-            pred_phrases.append(pred_phrase)
-
-    return boxes_filt, pred_phrases
+    return boxes_filt
 
 def show_mask(mask, ax, random_color=False):
     if random_color:
@@ -160,7 +148,7 @@ def detect_character(img_np_bgr: np.ndarray, prompt: str) :
         download_models()
         GROUNDING_DINO_MODEL = load_model(config_file, grounded_checkpoint, device=device)
     # run grounding dino model
-    boxes_filt, pred_phrases = get_grounding_output(
+    boxes_filt = get_grounding_output(
         GROUNDING_DINO_MODEL, image, prompt, box_threshold, text_threshold, device=device
     )
 
