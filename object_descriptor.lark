@@ -1,17 +1,18 @@
 start: config_statement object_statement postprocess_statement
 
 ?postprocess_statement: "postprocess" "{" postprocess* "}"
-?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_category | postprocess_match_prob | postprocess_match_exact | postprocess_match_any] [postprocess_action_drop | postprocess_action_append] ";"
-?postprocess_match_regex: "regex" DOUBLE_QUOTED_STRING
-?postprocess_match_category: "category" CNAME
-?postprocess_match_prob: "prob" NUMBER
-?postprocess_match_exact: "exact" TAG
-?postprocess_match_any: "any"
-?postprocess_action_drop: "drop"
-?postprocess_action_append: "append" TAG+
+?postprocess: POSTPROCESS_TAG [postprocess_match_regex | postprocess_match_tag | postprocess_match_category | postprocess_match_prob | postprocess_match_exact | postprocess_match_any] [postprocess_action_drop | postprocess_action_append] ";"
+?postprocess_match_regex: regex_symbol DOUBLE_QUOTED_STRING
+?postprocess_match_category: category_symbol CNAME
+?postprocess_match_prob: prob_symbol NUMBER
+?postprocess_match_exact: exact_symbol TAG
+?postprocess_match_any: any_symbol
+?postprocess_match_tag: tag_symbol query
+?postprocess_action_drop: drop_symbol TAG*
+?postprocess_action_append: append_symbol TAG+
 
 ?config_statement: "configs" "{" config+ "}"
-?config: TAG "=" DOUBLE_QUOTED_STRING ";"
+?config: TAG "=" (DOUBLE_QUOTED_STRING | NUMBER) ";"
 
 ?object_statement: "objects" "{" object+ "}"
 ?object: TAG "=" query ";"
@@ -24,11 +25,19 @@ start: config_statement object_statement postprocess_statement
 ?single_tag: TAG COMPARE NUMBER
 ?not_symbol: "NOT"
 
-NOT_SYMBOL: /NOT/
+?regex_symbol: "regex"
+?category_symbol: "category"
+?prob_symbol: "prob"
+?exact_symbol: "exact"
+?any_symbol: "any"
+?tag_symbol: "tag"
+?drop_symbol: "drop"
+?append_symbol: "append"
+
 COMPARE: /[<>]/
 TAG: /[\*\w\d\_\-]+[\w\d\_\-\(\)]*/
 POSTPROCESS_TAG: /[\*\w\d\_]+/
-DOUBLE_QUOTED_STRING  : /"[^"]*"/
+DOUBLE_QUOTED_STRING: /"[^"]*"/
 
 COMMENT: /\/\/.*\n/
 

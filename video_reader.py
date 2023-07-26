@@ -122,6 +122,22 @@ def _predict_frames(model, frames: np.ndarray):
 
     return single_frame_pred[:len(frames)]
 
+def _video_shot_generator_simple(model, video_filename: str, frame_size: int = 720, skip_n_frame: int = 60) :
+    vid = cv2.VideoCapture(video_filename)
+    ctr = -1
+    shot_frame_counter = 0
+    while True :
+        # Capture the video frame
+        # by frame
+        ret, frame_raw = vid.read()
+        if not ret :
+            break
+        ctr += 1
+        if ctr % skip_n_frame != 0 :
+            continue
+        #frame = resize_keep_aspect(frame_raw, frame_size)
+        yield [frame_raw], ctr
+
 def _video_shot_generator(model, video_filename: str, frame_size: int = 720, max_shot_length_sec: int = 120) :
     probe = ffmpeg.probe(video_filename)
     video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
@@ -169,7 +185,7 @@ def download_models() :
     from utils import download_model_file
     download_model_file('models/transnetv2-pytorch-weights.pth', 'https://github.com/zyddnys/anime-character-extractor/releases/download/files/transnetv2-pytorch-weights.pth', 'a313d0b3bebfa9a71914b375bfdf918a30b5c3b1e6be51972d35dd8078b442de')
 
-def video_frame_generator_transnetv2(path: str, verbose = False) :
+def video_frame_generator_transnetv2(path: str, verbose = False, mode = 'transnet') :
     global TRANSNETV2
     if TRANSNETV2 is None :
         print('[Video] Loading TransNetV2')
@@ -182,6 +198,9 @@ def video_frame_generator_transnetv2(path: str, verbose = False) :
     else :
         files = [path]
     print('[Video] Found', len(files), 'files in', path)
+    gen_func = _video_shot_generator
+    if mode == 'simple' :
+        gen_func = _video_shot_generator_simple
     for f in files :
         try :
             (_, filename) = os.path.split(f)
@@ -190,7 +209,7 @@ def video_frame_generator_transnetv2(path: str, verbose = False) :
             if ext in ['.png', '.jpg', '.webp', '.jpeg', '.bmp'] :
                 img = cv2.imread(f)
                 yield img, filename, 0
-            for shot_frames, shot_start_frmae_index in _video_shot_generator(TRANSNETV2, f) :
+            for shot_frames, shot_start_frmae_index in gen_func(TRANSNETV2, f) :
                 selected_shot_local_index = 0
                 mid_idx = len(shot_frames) // 2
                 found = False

@@ -37,12 +37,14 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     grounding_dino_prompt = configs.cfg["grounding_dino_prompt"]
     do_segment = configs.cfg["segment"].lower() == "true" if "segment" in configs.cfg else False
     dedup_threshold = float(configs.cfg['dedup_threshold']) if "dedup_threshold" in configs.cfg else -1
+    video_mode = configs.cfg['video_mode'] if "video_mode" in configs.cfg else "transnet"
     print('tagger', tagger)
     print('tag_threshold', tag_threshold)
     print('min_edge_size', min_edge_size)
     print('grounding_dino_prompt', grounding_dino_prompt)
     print('do_segment', do_segment)
     print('dedup_threshold', dedup_threshold)
+    print('video_mode', video_mode)
 
     report_freq = 10
     last_time = time.time()
@@ -50,7 +52,7 @@ def main(src: str, dst: str, desc: str, format: str = 'jpg') :
     n_frames = 0
     n_frames_cur_milestone = 0
     print('[Main] Process start')
-    for frame, filename, counter in video_frame_generator_transnetv2(src) :
+    for frame, filename, counter in video_frame_generator_transnetv2(src, mode = video_mode) :
         if objects.has_precondition() :
             whole_frame_tags = tag_image(frame, tag_threshold, model = tagger)
             if not objects.match_precondition(whole_frame_tags) :
